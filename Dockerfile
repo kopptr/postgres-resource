@@ -1,2 +1,2 @@
 FROM alpine
-RUN apk --update add postgresql-client bash
+RUN apk --update add postgresql-client bash jq
