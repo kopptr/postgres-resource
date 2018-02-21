@@ -1,27 +1,46 @@
 #!/bin/sh
 
-SQL_TABLE_NAME=$1
-TABLE_SUFFIX=$2
+set -e
 
-NEW_TABLE=${SQL_TABLE_NAME}_${TABLE_SUFFIX};
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
 
-psql $URL <<EOF
+PAYLOAD=$(mktemp $TMPDIR/postgres-resource-request.XXXXXX)
+cat > $PAYLOAD <&0
+
+URI=$(jq -r '.source.uri // ""' < $PAYLOAD)
+SOURCE=$(jq -r '.source.source_table // ""' < $PAYLOAD)
+TARGET_PREFIX=$(jq -r '.source.target_table_prefix // ""' < $PAYLOAD)
+
+TARGET=${TARGET_PREFIX}_${BUILD_JOB_NAME}_${BUILD_NAME}_${BUILD_ID}
+
+echo -n 'Ensuring metadata table exists... '
+psql $URI <<EOF
 CREATE TABLE IF NOT EXISTS $CONCOURSE_POSTGRES_RESOURCE_METADATA (
 	id SERIAL PRIMARY KEY,
 	base_table_name VARCHAR,
 	table_name VARCHAR
 )
 ;
+EOF
+echo 'OK'
 
+echo -n "Renaming $SOURCE to $TARGET..."
+psql $URI <<EOF
 ALTER TABLE
-	$SQL_TABLE_NAME
+	$SOURCE
 RENAME TO
-	$NEW_TABLE
+	$TARGET
 ;
 
 INSERT INTO $CONCOURSE_POSTGRES_RESOURCE_METADATA
 	(base_table_name, table_name)
 VALUES
-	($SQL_TABLE_NAME, $NEW_TABLE)
+	($SOURCE, $TARGET)
 ;
 EOF
+echo 'OK'
+
+jq -n "{
+  version: {table: $TARGET}
+}" >&3

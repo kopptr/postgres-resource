@@ -1,1 +1,43 @@
 #!/bin/sh
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+PAYLOAD=$(mktemp $TMPDIR/postgres-resource-request.XXXXXX)
+cat > $PAYLOAD <&0
+
+URI=$(jq -r '.source.uri // ""' < $PAYLOAD)
+SOURCE=$(jq -r '.source.source_table // ""' < $PAYLOAD)
+LATEST=$(jq -r '.version.table // ""' < $PAYLOAD)
+
+echo -n 'Ensuring metadata table exists... '
+psql $URI <<EOF
+CREATE TABLE IF NOT EXISTS $CONCOURSE_POSTGRES_RESOURCE_METADATA (
+	id SERIAL PRIMARY KEY,
+	base_table_name VARCHAR,
+	table_name VARCHAR
+)
+;
+EOF
+echo 'OK'
+
+echo -n "Fetching new versions of $SOURCE..."
+NEW_VERSIONS=$(psql $URI <<EOF
+SELECT
+	table_name
+FROM
+	$CONCOURSE_POSTGRES_RESOURCE_METADATA
+WHERE
+	id > (SELECT id FROM $CONCOURSE_POSTGRES_RESOURCE_METADATA WHERE table_name = $LATEST)
+ORDER BY
+	id ASC
+;
+EOF
+)
+echo 'OK'
+
+echo 'Fetched: $NEW_VERSIONS'
+
+echo $NEW_VERSIONS >&3
