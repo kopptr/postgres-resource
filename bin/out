@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 SQL_TABLE_NAME=$1
 TABLE_SUFFIX=$2
