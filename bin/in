@@ -32,4 +32,4 @@ fi
 echo 'OK'
 
 cat $PAYLOAD > $DEST/version.json
-cat $PAYLOAD >&3
+jq -n "$PAYLOAD" >&3
