@@ -38,8 +38,8 @@ echo 'OK'
 
 echo "Bookkeeping..."
 psql $URI <<EOF
-INSERT INTO $CONCOURSE_POSTGRES_RESOURCE_METADATA
-	(base_table_name, table_name)
+INSERT INTO "$CONCOURSE_POSTGRES_RESOURCE_METADATA"
+	("base_table_name", "table_name")
 VALUES
 	('$SOURCE', '$TARGET')
 ;
