@@ -15,7 +15,7 @@ CONCOURSE_POSTGRES_RESOURCE_METADATA=$(jq -r '.source.metadata_table // ""' < $P
 
 TARGET=$(echo ${TARGET_PREFIX}_${BUILD_JOB_NAME}_${BUILD_NAME}_${BUILD_ID} | sed 's/-/_/g')
 
-echo -n 'Ensuring metadata table exists... '
+echo 'Ensuring metadata table exists... '
 psql $URI <<EOF
 CREATE TABLE IF NOT EXISTS $CONCOURSE_POSTGRES_RESOURCE_METADATA (
 	id SERIAL PRIMARY KEY,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS $CONCOURSE_POSTGRES_RESOURCE_METADATA (
 EOF
 echo 'OK'
 
-echo -n "Renaming $SOURCE to $TARGET..."
+echo "Renaming $SOURCE to $TARGET..."
 psql $URI <<EOF
 ALTER TABLE
 	$SOURCE
