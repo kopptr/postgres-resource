@@ -47,5 +47,6 @@ EOF
 echo 'OK'
 
 jq -n "{
-  version: {table: \"$TARGET\"}
+  version: {table: \"$TARGET\"},
+  metadata: []
 }" >&3
