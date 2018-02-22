@@ -36,12 +36,12 @@ RENAME TO
 EOF
 echo 'OK'
 
-echo -n "Bookkeeping..."
+echo "Bookkeeping..."
 psql $URI <<EOF
 INSERT INTO $CONCOURSE_POSTGRES_RESOURCE_METADATA
 	(base_table_name, table_name)
 VALUES
-	($SOURCE, $TARGET)
+	('$SOURCE', '$TARGET')
 ;
 EOF
 echo 'OK'
