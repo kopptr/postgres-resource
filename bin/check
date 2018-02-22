@@ -10,6 +10,7 @@ cat > $PAYLOAD <&0
 
 URI=$(jq -r '.source.uri // ""' < $PAYLOAD)
 SOURCE=$(jq -r '.source.source_table // ""' < $PAYLOAD)
+CONCOURSE_POSTGRES_RESOURCE_METADATA=$(jq -r '.source.metadata_table // ""' < $PAYLOAD)
 LATEST=$(jq -r '.version.table // ""' < $PAYLOAD)
 
 echo -n 'Ensuring metadata table exists... '
